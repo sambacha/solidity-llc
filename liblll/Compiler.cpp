@@ -1,34 +1,38 @@
 /*
-	This file is part of solidity.
+    This file is part of solidity.
 
-	solidity is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    solidity is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	solidity is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    solidity is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with solidity.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with solidity.  If not, see <http://www.gnu.org/licenses/>.
 */
 /** @file Compiler.cpp
  * @author Gav Wood <i@gavwood.com>
  * @date 2014
  */
 
-#include <liblll/Compiler.h>
-#include <liblll/Parser.h>
-#include <liblll/CompilerState.h>
 #include <liblll/CodeFragment.h>
+#include <liblll/Compiler.h>
+#include <liblll/CompilerState.h>
+#include <liblll/Parser.h>
 
 using namespace std;
 using namespace dev;
 using namespace dev::lll;
 
-bytes dev::lll::compileLLL(string _src, langutil::EVMVersion _evmVersion, bool _opt, std::vector<std::string>* _errors, ReadCallback const& _readFile)
+bytes dev::lll::compileLLL(string _src,
+                           langutil::EVMVersion _evmVersion,
+                           bool _opt,
+                           std::vector<std::string> *_errors,
+                           ReadCallback const &_readFile)
 {
 	try
 	{
@@ -38,11 +42,11 @@ bytes dev::lll::compileLLL(string _src, langutil::EVMVersion _evmVersion, bool _
 		if (_opt)
 			assembly = assembly.optimise(true, _evmVersion, true, 200);
 		bytes ret = assembly.assemble().bytecode;
-		for (auto i: cs.treesToKill)
+		for (auto i : cs.treesToKill)
 			killBigints(i);
 		return ret;
 	}
-	catch (Exception const& _e)
+	catch (Exception const &_e)
 	{
 		if (_errors)
 		{
@@ -50,7 +54,7 @@ bytes dev::lll::compileLLL(string _src, langutil::EVMVersion _evmVersion, bool _
 			_errors->emplace_back(boost::diagnostic_information(_e));
 		}
 	}
-	catch (std::exception const& _e)
+	catch (std::exception const &_e)
 	{
 		if (_errors)
 		{
@@ -66,7 +70,11 @@ bytes dev::lll::compileLLL(string _src, langutil::EVMVersion _evmVersion, bool _
 	return bytes();
 }
 
-std::string dev::lll::compileLLLToAsm(std::string _src, langutil::EVMVersion _evmVersion, bool _opt, std::vector<std::string>* _errors, ReadCallback const& _readFile)
+std::string dev::lll::compileLLLToAsm(std::string _src,
+                                      langutil::EVMVersion _evmVersion,
+                                      bool _opt,
+                                      std::vector<std::string> *_errors,
+                                      ReadCallback const &_readFile)
 {
 	try
 	{
@@ -76,11 +84,11 @@ std::string dev::lll::compileLLLToAsm(std::string _src, langutil::EVMVersion _ev
 		if (_opt)
 			assembly = assembly.optimise(true, _evmVersion, true, 200);
 		string ret = assembly.assemblyString();
-		for (auto i: cs.treesToKill)
+		for (auto i : cs.treesToKill)
 			killBigints(i);
 		return ret;
 	}
-	catch (Exception const& _e)
+	catch (Exception const &_e)
 	{
 		if (_errors)
 		{
@@ -88,7 +96,7 @@ std::string dev::lll::compileLLLToAsm(std::string _src, langutil::EVMVersion _ev
 			_errors->emplace_back(boost::diagnostic_information(_e));
 		}
 	}
-	catch (std::exception const& _e)
+	catch (std::exception const &_e)
 	{
 		if (_errors)
 		{

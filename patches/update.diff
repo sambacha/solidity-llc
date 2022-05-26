@@ -1,0 +1,7 @@
+
+
+- libsolidity/CMakeLists.txt
+- 151:target_link_libraries(solidity PUBLIC yul evmasm langutil devcore Boost::boost Boost::filesystem Boost::system)
+
++ libsolidity/CMakeLists.txt
++ 151:target_link_libraries(solidity PUBLIC yul lll evmasm langutil devcore Boost::boost Boost::filesystem Boost::system)
