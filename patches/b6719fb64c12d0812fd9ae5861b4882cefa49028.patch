@@ -1,0 +1,151 @@
+From b6719fb64c12d0812fd9ae5861b4882cefa49028 Mon Sep 17 00:00:00 2001
+From: Alex Beregszaszi <alex@rtfs.hu>
+Date: Tue, 25 Apr 2017 20:18:26 +0100
+Subject: [PATCH] Support LLL compilation in StandardCompiler
+
+---
+ Changelog.md                               |  1 +
+ libsolidity/CMakeLists.txt                 |  2 +-
+ libsolidity/interface/StandardCompiler.cpp | 43 +++++++++++++++++++++-
+ solc/CMakeLists.txt                        |  4 +-
+ test/libsolidity/StandardCompiler.cpp      |  4 +-
+ 5 files changed, 48 insertions(+), 6 deletions(-)
+
+diff --git a/Changelog.md b/Changelog.md
+index 008b3c868f8..c6403363f8a 100644
+--- a/Changelog.md
++++ b/Changelog.md
+@@ -1,6 +1,7 @@
+ ### 0.4.18 (unreleased)
+ 
+ Features:
++ * API: Support LLL via the Standard JSON I/O.
+  * Parser: Better error message for unexpected trailing comma in parameter lists.
+  * Syntax Checker: Unary ``+`` is now a syntax error as experimental 0.5.0 feature.
+ 
+diff --git a/libsolidity/CMakeLists.txt b/libsolidity/CMakeLists.txt
+index f7c1a390e04..dc4981165a6 100644
+--- a/libsolidity/CMakeLists.txt
++++ b/libsolidity/CMakeLists.txt
+@@ -13,7 +13,7 @@ else()
+ endif()
+ 
+ add_library(solidity ${sources} ${headers})
+-target_link_libraries(solidity PUBLIC evmasm devcore)
++target_link_libraries(solidity PUBLIC lll evmasm devcore)
+ 
+ if (${Z3_FOUND})
+   target_link_libraries(solidity PUBLIC ${Z3_LIBRARY})
+diff --git a/libsolidity/interface/StandardCompiler.cpp b/libsolidity/interface/StandardCompiler.cpp
+index b4fbbef9b12..5f0f9097b91 100644
+--- a/libsolidity/interface/StandardCompiler.cpp
++++ b/libsolidity/interface/StandardCompiler.cpp
+@@ -23,6 +23,7 @@
+ #include <libsolidity/interface/StandardCompiler.h>
+ #include <libsolidity/interface/SourceReferenceFormatter.h>
+ #include <libsolidity/ast/ASTJsonConverter.h>
++#include <liblll/Compiler.h>
+ #include <libevmasm/Instruction.h>
+ #include <libdevcore/JSON.h>
+ #include <libdevcore/SHA3.h>
+@@ -152,6 +153,43 @@ Json::Value collectEVMObject(eth::LinkerObject const& _object, string const* _so
+ 	return output;
+ }
+ 
++Json::Value compileLLL(Json::Value const& _input)
++{
++	if (!_input["source"].isString())
++		return formatFatalError("JSONError", "Source missing.");
++
++	Json::Value const& settings = _input.get("settings", Json::Value());
++	Json::Value optimizerSettings = settings.get("optimizer", Json::Value());
++	bool const optimize = optimizerSettings.get("enabled", Json::Value(false)).asBool();
++
++	vector<string> errorList;
++	Json::Value output;
++	output["contracts"] = Json::objectValue;
++	output["contracts"][""] = Json::objectValue;
++	output["contracts"][""][""] = Json::objectValue;
++	output["contracts"][""][""]["lll"] = Json::objectValue;
++	output["contracts"][""][""]["lll"]["parsed"] = dev::eth::parseLLL(_input["source"].asString());
++	output["contracts"][""][""]["evm"] = Json::objectValue;
++	output["contracts"][""][""]["evm"]["assembly"] = dev::eth::compileLLLToAsm(_input["source"].asString(), optimize, &errorList);
++	output["contracts"][""][""]["evm"]["bytecode"] = toHex(dev::eth::compileLLL(_input["source"].asString(), optimize, &errorList));
++
++	if (errorList.size() > 0)
++	{
++		Json::Value errors = Json::arrayValue;
++		for (auto const& error: errorList)
++			errors.append(formatError(
++				false,
++				"LLLError",
++				"general",
++				error
++			));
++
++		output["errors"] = errors;
++	}
++
++	return output;
++}
++
+ }
+ 
+ Json::Value StandardCompiler::compileInternal(Json::Value const& _input)
+@@ -161,8 +199,11 @@ Json::Value StandardCompiler::compileInternal(Json::Value const& _input)
+ 	if (!_input.isObject())
+ 		return formatFatalError("JSONError", "Input is not a JSON object.");
+ 
++	if (_input["language"] == "LLL")
++		return compileLLL(_input);
++
+ 	if (_input["language"] != "Solidity")
+-		return formatFatalError("JSONError", "Only \"Solidity\" is supported as a language.");
++		return formatFatalError("JSONError", "Only \"Solidity\" and \"LLL\" is supported as a language.");
+ 
+ 	Json::Value const& sources = _input["sources"];
+ 	if (!sources)
+diff --git a/solc/CMakeLists.txt b/solc/CMakeLists.txt
+index 656b27c3431..c3c32502289 100644
+--- a/solc/CMakeLists.txt
++++ b/solc/CMakeLists.txt
+@@ -5,7 +5,7 @@ set(
+ )
+ 
+ add_executable(solc ${sources})
+-target_link_libraries(solc PRIVATE solidity ${Boost_PROGRAM_OPTIONS_LIBRARIES})
++target_link_libraries(solc PRIVATE solidity lll ${Boost_PROGRAM_OPTIONS_LIBRARIES})
+ 
+ include(GNUInstallDirs)
+ install(TARGETS solc DESTINATION "${CMAKE_INSTALL_BINDIR}")
+@@ -16,7 +16,7 @@ if (EMSCRIPTEN)
+ else()
+ 	add_library(soljson jsonCompiler.cpp)
+ endif()
+-target_link_libraries(soljson PRIVATE solidity)
++target_link_libraries(soljson PRIVATE solidity lll)
+ 
+ if(SOLC_LINK_STATIC AND UNIX AND NOT APPLE)
+ 	# Produce solc as statically linked binary (includes C/C++ standard libraries)
+diff --git a/test/libsolidity/StandardCompiler.cpp b/test/libsolidity/StandardCompiler.cpp
+index 24f915c07aa..534a05e5bef 100644
+--- a/test/libsolidity/StandardCompiler.cpp
++++ b/test/libsolidity/StandardCompiler.cpp
+@@ -129,7 +129,7 @@ BOOST_AUTO_TEST_CASE(invalid_language)
+ 	}
+ 	)";
+ 	Json::Value result = compile(input);
+-	BOOST_CHECK(containsError(result, "JSONError", "Only \"Solidity\" is supported as a language."));
++	BOOST_CHECK(containsError(result, "JSONError", "Only \"Solidity\" and \"LLL\" is supported as a language."));
+ }
+ 
+ BOOST_AUTO_TEST_CASE(valid_language)
+@@ -140,7 +140,7 @@ BOOST_AUTO_TEST_CASE(valid_language)
+ 	}
+ 	)";
+ 	Json::Value result = compile(input);
+-	BOOST_CHECK(!containsError(result, "JSONError", "Only \"Solidity\" is supported as a language."));
++	BOOST_CHECK(!containsError(result, "JSONError", "Only \"Solidity\" and \"LLL\" is supported as a language."));
+ }
+ 
+ BOOST_AUTO_TEST_CASE(no_sources)
