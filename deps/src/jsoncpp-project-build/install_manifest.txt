@@ -1,0 +1,12 @@
+/Users/sbacha/solidity-llc/deps/lib/libjsoncpp.a
+/Users/sbacha/solidity-llc/deps/include/json/allocator.h
+/Users/sbacha/solidity-llc/deps/include/json/assertions.h
+/Users/sbacha/solidity-llc/deps/include/json/autolink.h
+/Users/sbacha/solidity-llc/deps/include/json/config.h
+/Users/sbacha/solidity-llc/deps/include/json/features.h
+/Users/sbacha/solidity-llc/deps/include/json/forwards.h
+/Users/sbacha/solidity-llc/deps/include/json/json.h
+/Users/sbacha/solidity-llc/deps/include/json/reader.h
+/Users/sbacha/solidity-llc/deps/include/json/value.h
+/Users/sbacha/solidity-llc/deps/include/json/version.h
+/Users/sbacha/solidity-llc/deps/include/json/writer.h

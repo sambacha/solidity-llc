@@ -1,0 +1,12 @@
+# This is a generated file and its contents are an internal implementation detail.
+# The download step will be re-executed if anything in this file changes.
+# No other meaning or use of this file is supported.
+
+method=url
+command=/usr/local/Cellar/cmake/3.23.1/bin/cmake;-P;/Users/sbacha/solidity-llc/deps/src/jsoncpp-project-stamp/download-jsoncpp-project.cmake;COMMAND;/usr/local/Cellar/cmake/3.23.1/bin/cmake;-P;/Users/sbacha/solidity-llc/deps/src/jsoncpp-project-stamp/verify-jsoncpp-project.cmake;COMMAND;/usr/local/Cellar/cmake/3.23.1/bin/cmake;-P;/Users/sbacha/solidity-llc/deps/src/jsoncpp-project-stamp/extract-jsoncpp-project.cmake
+source_dir=/Users/sbacha/solidity-llc/deps/src/jsoncpp-project
+work_dir=/Users/sbacha/solidity-llc/deps/src
+url(s)=https://github.com/open-source-parsers/jsoncpp/archive/1.8.4.tar.gz
+hash=SHA256=c49deac9e0933bcb7044f08516861a2d560988540b23de2ac1ad443b219afdb6
+no_extract=
+
