@@ -1,3 +1,4 @@
+.DS_Store
 commit_hash.txt
 prerelease.txt
 
@@ -32,7 +33,6 @@ prerelease.txt
 
 # Build directory
 build/
-build*/
 emscripten_build/
 docs/_build
 docs/utils/__pycache__
