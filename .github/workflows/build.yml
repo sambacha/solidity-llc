@@ -2,12 +2,11 @@ name: buildpack-deps
 
 on:
   pull_request:
-    branches: [ develop ]
     paths:
-      - 'scripts/docker/buildpack-deps/Dockerfile.emscripten'
-      - 'scripts/docker/buildpack-deps/Dockerfile.ubuntu1604.clang.ossfuzz'
-      - 'scripts/docker/buildpack-deps/Dockerfile.ubuntu2004.clang'
-      - 'scripts/docker/buildpack-deps/Dockerfile.ubuntu2004'
+      - 'scripts/gh/buildpack-deps/Dockerfile.emscripten'
+      - 'scripts/gh/buildpack-deps/Dockerfile.ubuntu1604.clang.ossfuzz'
+      - 'scripts/gh/buildpack-deps/Dockerfile.ubuntu2004.clang'
+      - 'scripts/gh/buildpack-deps/Dockerfile.ubuntu2004'
 
 jobs:
   buildpack-deps:
@@ -22,10 +21,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image_variant: [emscripten, ubuntu1604.clang.ossfuzz, ubuntu2004.clang, ubuntu2004]
+        image_variant: [ubuntu2004.clang, ubuntu2004]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
